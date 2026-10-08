@@ -16,7 +16,7 @@ const initialState = {
   status: "loading",
   index: 0, // 5.1) انا محتاج زي موشر يخليني اعرض اول سوال عندي لما user يضغط علي button يعرض اول سوال فانت محتاج تعرض اول سوال عندك في array ازاي بقي عن [index] ولما يضغط علي next button المفروض
   // (index + 1) يعرض السوال اللي بعد (zero)
-  answer: null, // 6.1) انا محتاج هنا اني بعد لما الاسئلة ظهرت انا دلوقتي محتاج اني اختار الاجابة علي السوال اللي بيظهر لما تختار الاجابة بيحصل كذا حاجة عندك :
+  answer: null, // 6.1) انا محتاج هنا اني بعد لما الاسئلة ظهرت انا دلوقتي محتاج اني اختر الاجابة علي السوال اللي بيظهر لما تختار الاجابة بيحصل كذا حاجة عندك :
   // -1) اني الاجابة صح بتكون لونه اخضر و الباقي احمر
   // -2) button بتاع next علشان يظهر زرار بيكون ظهر
   // -3) وبيظهر points لما تكون الاجابة صح
@@ -69,6 +69,17 @@ function reducer(state, action) {
       };
     // 9.4) انا هنا عملت case بتاعت finish لما user يعمل click on button finish ال dispatch function تبعت action بتاعه علي حسب type اللي هو هنا finish فانت هتغير status ل finish وكمان ضيفت highscore لوا
     // state.points اكبر من state.highscore اعرض state.points
+    case "restart":
+      return {
+        ...state,
+        status: "ready",
+        highscore: 0,
+        index: 0,
+        answer: null,
+        points: 0,
+      };
+    // 10) انا هنا عملت state جديدة وهي اني رجعت كل حاجة زي مابدات quiz يعني كل حاجة ب zero فروحت لل finishscreen component وعملت button في بيعمل restart quiz وبعت لية dispatch علشان لما user ي click يروح
+    // type اللي هو restart
     default:
       throw new Error("Unknown Action");
   }
@@ -142,6 +153,7 @@ export default function App() {
             points={points}
             maxPossiblePoints={maxPossiblePoints}
             highscore={highscore}
+            dispatch={dispatch}
           />
         )}
         {/* 9.1) انا دلوقتي بعمل اية محتاج لما user يعمل يوصل لغاية اخر سوال يعرض ليا button finish , لما اجي ادوس علي button ده يعرض ليا component جديدة تمام في score الاسئلة اللي جوابت صح عليه فانت

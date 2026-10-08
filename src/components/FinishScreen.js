@@ -1,4 +1,9 @@
-export default function FinishScreen({ points, maxPossiblePoints, highscore }) {
+export default function FinishScreen({
+  points,
+  maxPossiblePoints,
+  highscore,
+  dispatch,
+}) {
   // 9.2) ده component اللي بيظهر لما تدوس finish button بيعرض ليك points و maxPossiblePoints و highscore بتاعك في اللعبة وكمان ضيف هنا some of conditions علي حسب انا جبت score كام يظهر ليا emoji معين وكده
   const percentage = (points / maxPossiblePoints) * 100;
 
@@ -17,6 +22,13 @@ export default function FinishScreen({ points, maxPossiblePoints, highscore }) {
       </p>
 
       <p className="highscore">Highscore: {highscore} points</p>
+
+      <button
+        className="btn btn-ui"
+        onClick={() => dispatch({ type: "restart" })}
+      >
+        Restart Quiz
+      </button>
     </>
   );
 }
