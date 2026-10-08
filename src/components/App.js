@@ -7,6 +7,7 @@ import StartScreen from "./StartScreen";
 import Question from "./Question";
 import NextQuestion from "./NextQuestion";
 import Progress from "./Progress";
+import FinishScreen from "./FinishScreen";
 
 // 2.6) ده current state بتاعتك عبارة عن object فيها questions ده بيكون array فاضي علشان ده اللي احطي في data اللي بتيجي من api و status ده حالة state يعني هل questions جاهزة ولا لا هل في error او loading
 const initialState = {
@@ -15,13 +16,14 @@ const initialState = {
   status: "loading",
   index: 0, // 5.1) انا محتاج زي موشر يخليني اعرض اول سوال عندي لما user يضغط علي button يعرض اول سوال فانت محتاج تعرض اول سوال عندك في array ازاي بقي عن [index] ولما يضغط علي next button المفروض
   // (index + 1) يعرض السوال اللي بعد (zero)
-  answer: null, // 6.1) انا محتاج هنا اني بعد لما الاسئلة ظهرت انا دلوقتي محتاج اني اختر الاجابة علي السوال اللي بيظهر لما تختار الاجابة بيحصل كذا حاجة عندك :
+  answer: null, // 6.1) انا محتاج هنا اني بعد لما الاسئلة ظهرت انا دلوقتي محتاج اني اختار الاجابة علي السوال اللي بيظهر لما تختار الاجابة بيحصل كذا حاجة عندك :
   // -1) اني الاجابة صح بتكون لونه اخضر و الباقي احمر
   // -2) button بتاع next علشان يظهر زرار بيكون ظهر
   // -3) وبيظهر points لما تكون الاجابة صح
   // فده يعتبر state علشان تعمل render ui فبيظهر حاجة جديدة فانت محتاج تعمل handle لل case ده تعال نعرف ازاي
   points: 0, // 7.1) انا محتاج هنا اني لو انا اخترت الاجابة الصح محتاج اني يظهر ليا عدد ال points اللي جايبه وكده دائما هيكون الاجابة true user take a 10 points ولا لو الاجابة is false take 0 فانت محتاج هنا
   // انك تغير جزاء من ui فهتعمل state جديدة فانت لازم تبدا ب zero points
+  highscore: 0,
 };
 
 // 2.4) ده reducer function بيكون فيها كل logic اللي هيتعمل ماشي بيخود (2 parameters) عندك state => currentState , action ده بيتبعت عن طريق dispatch اكنو زي setterFunction
@@ -58,6 +60,15 @@ function reducer(state, action) {
     case "nextQuestion": // 8.1) انا محتاج هنا اني لما ادوس علي الاجابة الصح يعرض button بتاع next question وبعد كده يبجيب السوال تاني
       return { ...state, index: state.index + 1, answer: null }; // 8.2) عمل هنا index بتاعت سوال اللي موجود في array of questions يزود واحد بحيث انو ينقل علي سوال اللي وراه  (zero ==> 1 ==> 2) ,
     // انا هنا برضو مرجع answer ب null علشان بيظهر معاك مشكلة وهي اني الاجابة بتاعت الاسئلة التانية بتكون بتظهر
+    case "finish":
+      return {
+        ...state,
+        status: "finish",
+        highscore:
+          state.points > state.highscore ? state.points : state.highscore,
+      };
+    // 9.4) انا هنا عملت case بتاعت finish لما user يعمل click on button finish ال dispatch function تبعت action بتاعه علي حسب type اللي هو هنا finish فانت هتغير status ل finish وكمان ضيفت highscore لوا
+    // state.points اكبر من state.highscore اعرض state.points
     default:
       throw new Error("Unknown Action");
   }
@@ -69,10 +80,8 @@ export default function App() {
   // 2) عندك dispatch اللي بيبعت actions اللي هتتنفذه جواه حاجة اسمها reducer function
   // 3) useReducer بتخود (2 parameters) => 1) بيكون reducer function ده اللي بيرجعلي new state , 2) initialState بتكون يا 0 او object
 
-  const [{ questions, status, index, answer, points }, dispatch] = useReducer(
-    reducer,
-    initialState,
-  ); // 3.3) انا هنا بدل ماعمل اني استخدم state.status جواه component لا عملت desturct لل object بحيث تكون سهلة عليا في write
+  const [{ questions, status, index, answer, points, highscore }, dispatch] =
+    useReducer(reducer, initialState); // 3.3) انا هنا بدل ماعمل اني استخدم state.status جواه component لا عملت desturct لل object بحيث تكون سهلة عليا في write
   // const { questions, status } = state;
 
   const numQuestions = questions.length; // 3.4) انا لية عملت derivied state هنا علشان انا عايز عدد الاسئلة اللي موجودة في array اللي هم 15 فعملت send لل variable ده اكنو props علشان استخدم في component اللي
@@ -118,11 +127,25 @@ export default function App() {
               dispatch={dispatch}
             />
             {/* 8.3) هعمل component بتاعت nextQuestion-button وهبعت فيها props dispatch-fun,answer  */}
-            <NextQuestion dispatch={dispatch} answer={answer} />
+            <NextQuestion
+              dispatch={dispatch}
+              answer={answer}
+              index={index}
+              numQuestions={numQuestions}
+            />
           </>
         )}{" "}
         {/* 5.2) انا هنا بعت questions array as prop علشان ده هيعرض اول سوال في array اللي index بتاعو ب zero و كمان questions في كل الاسئلة بتاعتك فاحنا هنعرض اول رقم اللي هو 0*/}
         {/* 4.1) انا هنا زودت component جديدة وهو اني ابدا اعرض الاسئلة بتاعتي فانا عملت condition علي status اني هي لو active ابدا اعرض الاسئلة تعال نعرف flow بيمشي ازاي */}
+        {status === "finish" && (
+          <FinishScreen
+            points={points}
+            maxPossiblePoints={maxPossiblePoints}
+            highscore={highscore}
+          />
+        )}
+        {/* 9.1) انا دلوقتي بعمل اية محتاج لما user يعمل يوصل لغاية اخر سوال يعرض ليا button finish , لما اجي ادوس علي button ده يعرض ليا component جديدة تمام في score الاسئلة اللي جوابت صح عليه فانت
+         دلوقتي هتعمل case جديدة وهي finish تمام */}
       </Main>
     </div>
   );
